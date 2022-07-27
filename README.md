@@ -2,7 +2,7 @@
 
 ## 概述
 
-该项目是使用 [three.js]() 来实现的星云，你可以通过 [这个链接](https://www.npmjs.com/package/three) 来查看 demo。
+该项目是使用 [three.js](https://www.npmjs.com/package/three) 来实现的星云，你可以通过 [这个链接](https://galaxy-six.vercel.app/) 来查看 demo。
 
 ![simple](./image-hosting/simple.png)
 
