@@ -1,6 +1,6 @@
 # 概述
 
-该项目是使用 [three.js](https://www.npmjs.com/package/three) 来实现的星系，你可以通过 [这个链接](https://galaxy-six.vercel.app/) 来查看 demo。
+基于 [three.js](https://www.npmjs.com/package/three) 的星系，欢迎查看 [在线 demo](https://galaxy-six.vercel.app/)。
 
 ![simple](./image-hosting/simple.png)
 
