@@ -1,1 +1,1 @@
-# template-three
+# Galaxy
