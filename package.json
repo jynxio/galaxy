@@ -1,23 +1,19 @@
 {
+    "name": "practice-vanilla",
+    "version": "0.0.0",
+    "license": "MIT",
+    "author": "jynxio",
+    "type": "module",
+    "private": true,
     "scripts": {
-        "deploy": "vercel --prod",
-        "start": "webpack serve --config ./bundler/webpack.dev.js",
-        "build": "webpack --config ./bundler/webpack.prod.js"
+        "start": "vite"
     },
     "devDependencies": {
-        "css-loader": "^6.7.1",
-        "css-minimizer-webpack-plugin": "^4.0.0",
-        "html-webpack-plugin": "^5.5.0",
-        "style-loader": "^3.3.1",
-        "vercel": "^27.2.0",
-        "webpack": "^5.74.0",
-        "webpack-cli": "^4.10.0",
-        "webpack-dev-server": "^4.9.3",
-        "webpack-merge": "^5.8.0"
+        "vite": "^3.2.4"
     },
     "dependencies": {
+        "three": "^0.146.0",
         "lil-gui": "^0.17.0",
-        "stats.js": "^0.17.0",
-        "three": "^0.142.0"
+        "stats.js": "^0.17.0"
     }
 }
