@@ -1,18 +1,13 @@
 {
-    "name": "practice-vanilla",
-    "version": "0.0.0",
     "license": "MIT",
-    "author": "jynxio",
-    "type": "module",
-    "private": true,
     "scripts": {
         "start": "vite"
     },
     "devDependencies": {
-        "vite": "^3.2.4"
+        "vite": "^3.2.5"
     },
     "dependencies": {
-        "three": "^0.146.0",
+        "three": "^0.147.0",
         "lil-gui": "^0.17.0",
         "stats.js": "^0.17.0"
     }
