@@ -1,6 +1,12 @@
-# node
+# Development
 node_modules
 package-lock.json
 
-# mac
+# Production
+build
+
+# Server
+.vercel
+
+# Macos file
 .DS_Store
