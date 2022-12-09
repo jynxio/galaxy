@@ -84,15 +84,17 @@ const parameter = {
     insideColor: 0xff6030,
     outsideColor: 0x1b3984,
     armLength: 5,           // 旋臂的长度
-    armRadius: 0.5,         // 旋臂的半径
+    armRadius: 5,           // 旋臂的半径
     eccentricity: 8,        // 离心率
+    spin: 0.5,              // 旋转程度
 };
 
 gui.add( parameter, "count" ).min( 100 ).max( 1000000 ).step( 100 ).onFinishChange( updateGalaxy );
 gui.add( parameter, "size" ).min( 0.001 ).max( 0.05 ).step( 0.001 ).onFinishChange( updateGalaxy );
 gui.add( parameter, "armLength" ).min( 1 ).max( 10 ).step( 0.01 ).onFinishChange( updateGalaxy );
-gui.add( parameter, "armRadius" ).min( 0.1 ).max( 1 ).step( 0.001 ).onFinishChange( updateGalaxy );
+gui.add( parameter, "armRadius" ).min( 1 ).max( 100 ).step( 0.1 ).onFinishChange( updateGalaxy );
 gui.add( parameter, "eccentricity" ).min( 1 ).max( 20 ).step( 0.001 ).onFinishChange( updateGalaxy );
+gui.add( parameter, "spin" ).min( 0.1 ).max( 1 ).step( 0.01 ).onFinishChange( updateGalaxy );
 // gui.add( parameter, "radius" ).min( 0.01 ).max( 20 ).step( 0.01 ).onFinishChange( updateGalaxy );
 // gui.add( parameter, "branchCount" ).min( 2 ).max( 20 ).step( 1 ).onFinishChange( updateGalaxy );
 // gui.add( parameter, "randomness" ).min( 0 ).max( 2 ).step( 0.001 ).onFinishChange( updateGalaxy );
@@ -177,7 +179,7 @@ function createGalaxy ( parameter ) {
             = ( Math.random() < 0.5 ? 1 : - 1 )
             * Math.sqrt( random_radius * random_radius - y * y );
 
-        [ x, y, z ] = calculatePointRotateAroundAxis( [ x, y, z ], [ 0, 0, 1 ], Math.abs( x ) * Math.PI * 2 );
+        // [ x, y, z ] = calculatePointRotateAroundAxis( [ x, y, z ], [ 0, 0, 1 ], Math.abs( x ) * Math.PI * 2 * parameter.spin );
 
         position_array[ i_3 + 0 ] = x;
         position_array[ i_3 + 1 ] = y;
@@ -207,6 +209,7 @@ function createGalaxy ( parameter ) {
         sizeAttenuation: true,
         vertexColors: true,
         depthWrite: false,
+        depthTest: false,
         blending: three.AdditiveBlending,
     } );
 
