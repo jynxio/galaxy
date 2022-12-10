@@ -175,10 +175,13 @@ function createGalaxy ( parameter ) {
 
         let x = radius * Math.cos( rotation );
         let y = radius * Math.sin( rotation );
+        let z = 0;
 
-        let z = ( Math.random() < 0.5 ? 1 : - 1 ) * Math.random() * parameter.armRadius;
+        const offset = createRandomSpherePosition( 1 );
 
-        y += ( Math.random() < 0.5 ? 1 : - 1 ) * Math.sqrt( parameter.armRadius * parameter.armRadius - z * z )
+        x += offset[ 0 ];
+        y += offset[ 1 ];
+        z += offset[ 2 ];
 
         position_array[ i_3 + 0 ] = x;
         position_array[ i_3 + 1 ] = y;
