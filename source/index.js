@@ -220,3 +220,24 @@ function createGalaxy ( parameter ) {
     return points;
 
 }
+
+/**
+ * 创建一个位于球体之内的随机位置（球心坐标默认为[0,0,0]）。
+ * @param { number } radius - 球的半径。
+ * @returns { number[] } - 随机位置。
+ */
+function createRandomSpherePosition ( radius ) {
+
+    const random_radius = Math.random() * radius;
+
+    let x = Math.random() * random_radius;
+    let y = Math.random() * Math.sqrt( random_radius * random_radius - x * x );
+    let z = Math.sqrt( random_radius * random_radius - y * y - x * x );
+
+    x *= Math.random() < 0.5 ? 1 : - 1;
+    y *= Math.random() < 0.5 ? 1 : - 1;
+    z *= Math.random() < 0.5 ? 1 : - 1;
+
+    return [ x, y, z ];
+
+}
