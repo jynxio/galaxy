@@ -75,24 +75,24 @@ renderer.setAnimationLoop( function loop() {
  */
 const gui = new Gui();
 const parameter = {
-    radius: 5,
-    branchCount: 3,
-    randomness: 0.2,
+    // radius: 5,
+    // branchCount: 3,
+    // randomness: 0.2,
 
-    count: 100000,
+    count: 500000,
     size: 0.01,
     insideColor: 0xff6030,
     outsideColor: 0x1b3984,
     armLength: 5,           // 旋臂的长度
-    armRadius: 5,           // 旋臂的半径
+    armRadius: 0.5,         // 旋臂的半径
     eccentricity: 8,        // 离心率
     spin: 0.5,              // 旋转程度
 };
 
-gui.add( parameter, "count" ).min( 100 ).max( 1000000 ).step( 100 ).onFinishChange( updateGalaxy );
+gui.add( parameter, "count" ).min( 10000 ).max( 1000000 ).step( 100 ).onFinishChange( updateGalaxy );
 gui.add( parameter, "size" ).min( 0.001 ).max( 0.05 ).step( 0.001 ).onFinishChange( updateGalaxy );
 gui.add( parameter, "armLength" ).min( 1 ).max( 10 ).step( 0.01 ).onFinishChange( updateGalaxy );
-gui.add( parameter, "armRadius" ).min( 1 ).max( 100 ).step( 0.1 ).onFinishChange( updateGalaxy );
+gui.add( parameter, "armRadius" ).min( 0.1 ).max( 10 ).step( 0.1 ).onFinishChange( updateGalaxy );
 gui.add( parameter, "eccentricity" ).min( 1 ).max( 20 ).step( 0.001 ).onFinishChange( updateGalaxy );
 gui.add( parameter, "spin" ).min( 0.1 ).max( 1 ).step( 0.01 ).onFinishChange( updateGalaxy );
 // gui.add( parameter, "radius" ).min( 0.01 ).max( 20 ).step( 0.01 ).onFinishChange( updateGalaxy );
@@ -132,13 +132,6 @@ function updateGalaxy () {
 /**
  * 创建Galaxy。
  * @param { Object } parameter - 参数字典。
- * @param { number } parameter.count - 粒子的数量。
- * @param { number } parameter.radius - 银河的半径。
- * @param { number } parameter.branchCount - 分支的数量。
- * @param { number } parameter.randomness - ???
- * @param { number } parameter.eccentricity - ???
- * @param { number } parameter.insideColor - 内环的颜色（hex格式）。
- * @param { number } parameter.outsideColor - 外环的颜色（hex格式）。
  * @returns { Points } - Points实例。
  */
 function createGalaxy ( parameter ) {
@@ -158,28 +151,34 @@ function createGalaxy ( parameter ) {
 
         const i_3 = i * 3;
 
-        const angle = ( i % parameter.branchCount ) / parameter.branchCount * Math.PI * 2;
-
         /**
          * Position
          */
-        let x
-            = ( Math.random() < 0.5 ? 1 : - 1 )
-            * Math.random() * parameter.armLength;
+        // let x
+        //     = ( Math.random() < 0.5 ? 1 : - 1 )
+        //     * Math.random() * parameter.armLength;
 
-        const random_radius
-            = Math.random() * parameter.armRadius
-            * Math.pow( Math.random(), parameter.eccentricity );
+        // const random_radius
+        //     = Math.random() * parameter.armRadius
+        //     * Math.pow( Math.random(), parameter.eccentricity );
 
-        let y
-            = ( Math.random() < 0.5 ? 1 : - 1 )
-            * Math.random() * random_radius;
+        // let y
+        //     = ( Math.random() < 0.5 ? 1 : - 1 )
+        //     * Math.random() * random_radius;
 
-        let z
-            = ( Math.random() < 0.5 ? 1 : - 1 )
-            * Math.sqrt( random_radius * random_radius - y * y );
+        // let z
+        //     = ( Math.random() < 0.5 ? 1 : - 1 )
+        //     * Math.sqrt( random_radius * random_radius - y * y );
 
-        // [ x, y, z ] = calculatePointRotateAroundAxis( [ x, y, z ], [ 0, 0, 1 ], Math.abs( x ) * Math.PI * 2 * parameter.spin );
+        const radius = ( Math.random() < 0.5 ? 1 : - 1 ) * Math.random() * parameter.armLength; // 该点距原点的距离
+        const rotation = Math.abs( radius ) * Math.PI * 2 * parameter.spin;                     // 该点绕原点的旋转角度
+
+        let x = radius * Math.cos( rotation );
+        let y = radius * Math.sin( rotation );
+
+        let z = ( Math.random() < 0.5 ? 1 : - 1 ) * Math.random() * parameter.armRadius;
+
+        y += ( Math.random() < 0.5 ? 1 : - 1 ) * Math.sqrt( parameter.armRadius * parameter.armRadius - z * z )
 
         position_array[ i_3 + 0 ] = x;
         position_array[ i_3 + 1 ] = y;
@@ -188,11 +187,11 @@ function createGalaxy ( parameter ) {
         /**
          * Color
          */
-        const mixed_color = inside_color.clone().lerp( outside_color, random_radius / parameter.armRadius * 2 );
+        // const mixed_color = inside_color.clone().lerp( outside_color, random_radius / parameter.armRadius * 2 );
 
-        color_array[ i_3 + 0 ] = mixed_color.r;
-        color_array[ i_3 + 1 ] = mixed_color.g;
-        color_array[ i_3 + 2 ] = mixed_color.b;
+        // color_array[ i_3 + 0 ] = mixed_color.r;
+        // color_array[ i_3 + 1 ] = mixed_color.g;
+        // color_array[ i_3 + 2 ] = mixed_color.b;
 
     }
 
@@ -207,7 +206,7 @@ function createGalaxy ( parameter ) {
     const material = new three.PointsMaterial( {
         size: parameter.size,
         sizeAttenuation: true,
-        vertexColors: true,
+        vertexColors: false,
         depthWrite: false,
         depthTest: false,
         blending: three.AdditiveBlending,
