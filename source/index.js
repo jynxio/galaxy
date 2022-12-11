@@ -4,222 +4,222 @@ import "/style/index.css";
 
 import * as three from "three";
 
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-import Gui from "lil-gui";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 
-import vertex_shader from "./vertex.glsl?raw";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 
-import fragment_shader from "./fragment.glsl?raw";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
-import { calculatePointRotateAroundAxis } from "./math";
-
-/* ------------------------------------------------------------------------------------------------------ */
-/**
- * Camera
- */
-const camera = new three.PerspectiveCamera( 75, globalThis.innerWidth / globalThis.innerHeight, 0.01, 100 );
-
-camera.position.set( 0, 0, 3 );
+import * as dat from "lil-gui";
 
 /**
- * Scene
+ * Base
  */
+// Debug
+const gui = new dat.GUI();
+
+// Canvas
+const canvas = document.querySelector("canvas");
+
+// Scene
 const scene = new three.Scene();
 
-scene.add( camera );
-
 /**
- * Renderer
+ * Galaxy
  */
-const canvas = document.querySelector( "canvas" );
-const renderer = new three.WebGLRenderer( { canvas, antialias: globalThis.devicePixelRatio < 2 } );
+let geometry;
+let material;
+let points;
 
-renderer.setPixelRatio( Math.min( globalThis.devicePixelRatio, 2 ) );
-renderer.setSize( globalThis.innerWidth, globalThis.innerHeight );
-
-/**
- * Controls
- */
-const controls = new OrbitControls( camera, renderer.domElement );
-
-controls.enableDamping = true;
-
-/**
- * Resize
- */
-globalThis.addEventListener( "resize", _ => {
-
-    renderer.setPixelRatio( Math.min( globalThis.devicePixelRatio, 2 ) );
-    renderer.setSize( globalThis.innerWidth, globalThis.innerHeight);
-
-    camera.aspect = globalThis.innerWidth / globalThis.innerHeight;
-    camera.updateProjectionMatrix();
-
-} );
-
-/**
- * Render
- */
-renderer.setAnimationLoop( function loop() {
-
-    controls.update();
-
-    renderer.render( scene, camera );
-
-} );
-
-/* ------------------------------------------------------------------------------------------------------ */
-/**
- * Debug
- */
-const gui = new Gui();
-const parameter = {
-    // radius: 5,
-    // branchCount: 3,
-    // randomness: 0.2,
-
-    count: 500000,
+const parameters = {
+    count: 100000,
     size: 0.01,
+    radius: 5,
+    branches: 3,
+    spin: 5,
+    randomness: 1,
+    randomnessPower: 4,
     insideColor: 0xff6030,
     outsideColor: 0x1b3984,
-    armLength: 5,           // 旋臂的长度
-    armRadius: 0.5,         // 旋臂的半径
-    eccentricity: 8,        // 离心率
-    spin: 0.5,              // 旋转程度
 };
 
-gui.add( parameter, "count" ).min( 10000 ).max( 1000000 ).step( 100 ).onFinishChange( updateGalaxy );
-gui.add( parameter, "size" ).min( 0.001 ).max( 0.05 ).step( 0.001 ).onFinishChange( updateGalaxy );
-gui.add( parameter, "armLength" ).min( 1 ).max( 10 ).step( 0.01 ).onFinishChange( updateGalaxy );
-gui.add( parameter, "armRadius" ).min( 0.1 ).max( 10 ).step( 0.1 ).onFinishChange( updateGalaxy );
-gui.add( parameter, "eccentricity" ).min( 1 ).max( 20 ).step( 0.001 ).onFinishChange( updateGalaxy );
-gui.add( parameter, "spin" ).min( 0.1 ).max( 1 ).step( 0.01 ).onFinishChange( updateGalaxy );
-// gui.add( parameter, "radius" ).min( 0.01 ).max( 20 ).step( 0.01 ).onFinishChange( updateGalaxy );
-// gui.add( parameter, "branchCount" ).min( 2 ).max( 20 ).step( 1 ).onFinishChange( updateGalaxy );
-// gui.add( parameter, "randomness" ).min( 0 ).max( 2 ).step( 0.001 ).onFinishChange( updateGalaxy );
+gui.add(parameters, "count").min(100).max(1000000).step(100).onFinishChange(generateGalaxy);
+gui.add(parameters, "size").min(0.001).max(0.1).step(0.001).onFinishChange(generateGalaxy);
+gui.add(parameters, "radius").min(0.01).max(20).step(0.01).onFinishChange(generateGalaxy);
+gui.add(parameters, "branches").min(2).max(20).step(1).onFinishChange(generateGalaxy);
+gui.add(parameters, "spin").min(-5).max(5).step(0.001).onFinishChange(generateGalaxy);
+gui.add(parameters, "randomness").min(0).max(2).step(0.001).onFinishChange(generateGalaxy);
+gui.add(parameters, "randomnessPower").min(1).max(10).step(0.001).onFinishChange(generateGalaxy);
+gui.addColor(parameters, "insideColor").onFinishChange(generateGalaxy);
+gui.addColor(parameters, "outsideColor").onFinishChange(generateGalaxy);
 
-gui.addColor( parameter, "insideColor" ).onFinishChange( updateGalaxy );
-gui.addColor( parameter, "outsideColor" ).onFinishChange( updateGalaxy );
+generateGalaxy(parameters);
 
-/**
- * 初始化Galaxy
- */
-let galaxy;
+function generateGalaxy() {
 
-updateGalaxy();
+    if (points) {
 
-/**
- * 更新Galaxy。
- */
-function updateGalaxy () {
-
-    if ( galaxy ) {
-
-        scene.remove( galaxy );
-
-        galaxy.geometry.dispose();
-        galaxy.material.dispose();
+        geometry.dispose();
+        material.dispose();
+        scene.remove(points);
 
     }
-
-    galaxy = createGalaxy( parameter );
-
-    scene.add( galaxy );
-
-}
-
-/**
- * 创建Galaxy。
- * @param { Object } parameter - 参数字典。
- * @returns { Points } - Points实例。
- */
-function createGalaxy ( parameter ) {
 
     /**
      * Geometry
      */
-    const color_array = new Float32Array( parameter.count * 3 );
-    const scale_array = new Float32Array( parameter.count * 1 );
-    const position_array = new Float32Array( parameter.count * 3 );
-    const randomness_array = new Float32Array( parameter.count * 3 );
+    geometry = new three.BufferGeometry();
 
-    const inside_color = new three.Color( parameter.insideColor );
-    const outside_color = new three.Color( parameter.outsideColor );
+    const positions = new Float32Array(parameters.count * 3);
+    const colors = new Float32Array(parameters.count * 3);
 
-    for ( let i = 0; i < parameter.count; i ++ ) {
+    const color_inside = new three.Color(parameters.insideColor);
+    const color_outside = new three.Color(parameters.outsideColor);
+
+    for (let i = 0; i < parameters.count; i++) {
 
         const i_3 = i * 3;
 
-        /**
-         * Position
-         */
-        const [ offset_x, offset_y, offset_z ] = createRandomSpherePosition( 1 );
-        const random_radius = ( Math.random() < 0.5 ? 1 : - 1 ) * Math.random() * parameter.armLength; // 该点距原点的距离
-        let rotation = Math.abs( random_radius ) * Math.PI * 2 * parameter.spin;                     // 该点绕原点的旋转角度
+        const radius = Math.random() * parameters.radius;
+        const spin_angle = radius * parameters.spin;
+        const branch_angle = (i % parameters.branches) / parameters.branches * Math.PI * 2;
 
-        const x = random_radius * Math.cos( rotation ) + offset_x;
-        const y = random_radius * Math.sin( rotation ) + offset_y;
-        const z = 0 + offset_z;
+        //
+        const random_x = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * parameters.randomness * radius;
+        const random_y = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * parameters.randomness * radius;
+        const random_z = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * parameters.randomness * radius;
 
-        position_array[ i_3 + 0 ] = x;
-        position_array[ i_3 + 1 ] = y;
-        position_array[ i_3 + 2 ] = z;
+        positions[i_3] = Math.cos(branch_angle + spin_angle) * radius + random_x;
+        positions[i_3 + 1] = random_y;
+        positions[i_3 + 2] = Math.sin(branch_angle + spin_angle) * radius + random_z;
 
-        /**
-         * Color
-         */
-        const mixed_color = inside_color.clone().lerp( outside_color, Math.hypot( offset_x, offset_y, offset_z ) / parameter.armRadius );
+        //
+        const mixed_color = color_inside.clone().lerp(color_outside, radius / parameters.radius);
 
-        color_array[ i_3 + 0 ] = mixed_color.r;
-        color_array[ i_3 + 1 ] = mixed_color.g;
-        color_array[ i_3 + 2 ] = mixed_color.b;
+        colors[i_3] = mixed_color.r;
+        colors[i_3 + 1] = mixed_color.g;
+        colors[i_3 + 2] = mixed_color.b;
 
     }
 
-    const geometry = new three.BufferGeometry();
-
-    geometry.setAttribute( "position", new three.BufferAttribute( position_array, 3 ) );
-    geometry.setAttribute( "color", new three.BufferAttribute( color_array, 3 ) );
+    geometry.setAttribute("position", new three.BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new three.BufferAttribute(colors, 3));
 
     /**
      * Material
      */
-    const material = new three.PointsMaterial( {
-        size: parameter.size,
+    material = new three.PointsMaterial({
+        size: parameters.size,
         sizeAttenuation: true,
-        vertexColors: true,
         depthWrite: false,
-        depthTest: false,
         blending: three.AdditiveBlending,
-    } );
+        vertexColors: true,
+    });
 
     /**
      * Points
      */
-    const points = new three.Points( geometry, material );
-
-    return points;
+    points = new three.Points(geometry, material);
+    scene.add(points);
 
 }
 
 /**
- * 创建一个位于球体之内的随机位置（球心坐标默认为[0,0,0]）。
- * @param { number } radius - 球的半径。
- * @returns { number[] } - 随机位置。
+ * Size
  */
-function createRandomSpherePosition ( radius ) {
+const size = {
+    width: window.innerWidth,
+    height: window.innerHeight
+};
 
-    const random_radius = Math.random() * radius;
+window.addEventListener("resize", () => {
 
-    let x = Math.random() * random_radius;
-    let y = Math.random() * Math.sqrt( random_radius * random_radius - x * x );
-    let z = Math.sqrt( random_radius * random_radius - y * y - x * x );
+    size.width = window.innerWidth;
+    size.height = window.innerHeight;
 
-    x *= Math.random() < 0.5 ? 1 : - 1;
-    y *= Math.random() < 0.5 ? 1 : - 1;
-    z *= Math.random() < 0.5 ? 1 : - 1;
+    camera.aspect = size.width / size.height;
+    camera.updateProjectionMatrix();
 
-    return [ x, y, z ];
+    renderer.setSize(size.width, size.height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+})
+
+/**
+ * Camera
+ */
+// Base camera
+const camera = new three.PerspectiveCamera(75, size.width / size.height, 0.1, 100);
+camera.position.x = 3;
+camera.position.y = 3;
+camera.position.z = 3;
+scene.add(camera);
+
+// Controls
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+
+/**
+ * Renderer
+ */
+const renderer = new three.WebGLRenderer({
+    canvas: canvas
+});
+renderer.setSize(size.width, size.height);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+/**
+ * Animate
+ */
+const clock = new three.Clock();
+
+tick();
+
+function tick() {
+
+    window.requestAnimationFrame(tick);
+
+    const elapsed_time = clock.getElapsedTime();
+
+    points.rotation.y = elapsed_time * 0.1;
+
+    controls.update();
+    renderer.render(scene, camera);
+
+}
+
+/**
+ * 泛光
+ */
+floodlight();
+
+function floodlight() {
+
+    const composer = new EffectComposer(renderer);                                                                    // 效果合成器
+    const pass_render = new RenderPass(scene, camera);                                                                // 后期处理（基本）
+    const pass_bloom = new UnrealBloomPass(new three.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85); // 后期处理（泛光）
+
+    pass_bloom.renderToScreen = true; // 最终过程是否被渲染到屏幕
+    pass_bloom.threshold = 0;         // ？
+    pass_bloom.strength = 1;          // 强度
+    pass_bloom.radius = 0;            // 半径
+
+    composer.setSize(window.innerWidth, window.innerHeight); // 尺寸
+    composer.addPass(pass_render);                           // 将该后期处理环节添加至过程链
+    composer.addPass(pass_bloom);                            // 将该后期处理环节添加至过程链
+
+    renderer.setAnimationLoop(() => {
+
+        composer.render();  // 按顺序执行所有启用的后期处理环节, 来产生最终的帧
+
+    });
+
+    window.addEventListener("resize", _ => {
+
+        composer.setSize(window.innerWidth, window.innerHeight);
+
+    });
 
 }
