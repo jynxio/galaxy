@@ -1,12 +1,13 @@
-# Development
-node_modules
-package-lock.json
-
 # Production
+dist
 build
 
 # Server
 .vercel
 
-# Macos file
+# Development
+node_modules
+package-lock.json
+
+# MacOS
 .DS_Store
