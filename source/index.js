@@ -154,34 +154,13 @@ function createGalaxy ( parameter ) {
         /**
          * Position
          */
-        // let x
-        //     = ( Math.random() < 0.5 ? 1 : - 1 )
-        //     * Math.random() * parameter.armLength;
+        const [ offset_x, offset_y, offset_z ] = createRandomSpherePosition( 1 );
+        const random_radius = ( Math.random() < 0.5 ? 1 : - 1 ) * Math.random() * parameter.armLength; // 该点距原点的距离
+        let rotation = Math.abs( random_radius ) * Math.PI * 2 * parameter.spin;                     // 该点绕原点的旋转角度
 
-        // const random_radius
-        //     = Math.random() * parameter.armRadius
-        //     * Math.pow( Math.random(), parameter.eccentricity );
-
-        // let y
-        //     = ( Math.random() < 0.5 ? 1 : - 1 )
-        //     * Math.random() * random_radius;
-
-        // let z
-        //     = ( Math.random() < 0.5 ? 1 : - 1 )
-        //     * Math.sqrt( random_radius * random_radius - y * y );
-
-        const radius = ( Math.random() < 0.5 ? 1 : - 1 ) * Math.random() * parameter.armLength; // 该点距原点的距离
-        const rotation = Math.abs( radius ) * Math.PI * 2 * parameter.spin;                     // 该点绕原点的旋转角度
-
-        let x = radius * Math.cos( rotation );
-        let y = radius * Math.sin( rotation );
-        let z = 0;
-
-        const offset = createRandomSpherePosition( 1 );
-
-        x += offset[ 0 ];
-        y += offset[ 1 ];
-        z += offset[ 2 ];
+        const x = random_radius * Math.cos( rotation ) + offset_x;
+        const y = random_radius * Math.sin( rotation ) + offset_y;
+        const z = 0 + offset_z;
 
         position_array[ i_3 + 0 ] = x;
         position_array[ i_3 + 1 ] = y;
@@ -190,11 +169,11 @@ function createGalaxy ( parameter ) {
         /**
          * Color
          */
-        // const mixed_color = inside_color.clone().lerp( outside_color, random_radius / parameter.armRadius * 2 );
+        const mixed_color = inside_color.clone().lerp( outside_color, Math.hypot( offset_x, offset_y, offset_z ) / parameter.armRadius );
 
-        // color_array[ i_3 + 0 ] = mixed_color.r;
-        // color_array[ i_3 + 1 ] = mixed_color.g;
-        // color_array[ i_3 + 2 ] = mixed_color.b;
+        color_array[ i_3 + 0 ] = mixed_color.r;
+        color_array[ i_3 + 1 ] = mixed_color.g;
+        color_array[ i_3 + 2 ] = mixed_color.b;
 
     }
 
@@ -209,7 +188,7 @@ function createGalaxy ( parameter ) {
     const material = new three.PointsMaterial( {
         size: parameter.size,
         sizeAttenuation: true,
-        vertexColors: false,
+        vertexColors: true,
         depthWrite: false,
         depthTest: false,
         blending: three.AdditiveBlending,
